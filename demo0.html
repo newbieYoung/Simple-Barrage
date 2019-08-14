@@ -5,6 +5,7 @@
     <title>示例一</title>
     <meta name=viewport content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no,minimal-ui">
     <link rel="stylesheet" href="./reset.css">
+    <link rel="stylesheet" href="./barrage.import.css">
     <style>
         body{
             overflow: hidden;
@@ -22,36 +23,6 @@
             justify-content: flex-start;
             height:60px;
             background-color:lightgray;
-        }
-
-        /* 弹幕组件 */
-        .barrage-item{
-            display:inline-block;
-            -webkit-transition-property: -webkit-transform;
-            transition-property: -webkit-transform;
-            transition-property: transform;
-            transition-property: transform,-webkit-transform;
-            -webkit-transition-timing-function: linear;
-            transition-timing-function: linear;
-            --lineHeight: 0px;/* 弹幕行高 */
-            --lineOffset: 0px;/* 弹幕行偏移 */
-            --gapWidth: 0px;/* 弹幕元素间距 */
-            position: absolute;
-            top:0;
-        }
-        .barrage-line{
-            display:inline-block;
-            white-space: nowrap;
-            font-size:0;
-            height:var(--lineHeight);
-        }
-        .barrage-line li{
-            display:inline-block;
-            height:100%;
-        }
-        .barrage-line li>*{
-            margin-top:var(--lineOffset);
-            margin-right:var(--gapWidth);
         }
     </style>
 </head>
