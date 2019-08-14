@@ -102,7 +102,7 @@
         for(var i=0;i<items.length;i++){
             var cur = _min(lens);
             var item = items[i];
-            this.randomStatus(item.ele,eles[cur.index].length);
+            this.randomStatus(item.ele);
             lens[cur.index] += item.len;
             eles[cur.index].push(item.ele);
         }
@@ -125,7 +125,8 @@
         $item.style.setProperty('--lineHeight',this._lineHeight+'px');
         $item.style.setProperty('--lineOffset',(this._lineHeight - this.eleHeight)/2+'px');
         $item.style.setProperty('--gapWidth',this.gapWidth+'px');
-        $item.style[transformProperty] = 'translateX('+ (this._containerRect.width + this.gapWidth/2) +'px) translateZ(0)';//设置起始位置
+        $item._moveX = this._containerRect.width + this.gapWidth/2;
+        $item.style[transformProperty] = 'translateX('+ $item._moveX +'px) translateZ(0)';//设置起始位置
         $item._lines = lines;
 
         this.$container.appendChild($item);
@@ -134,24 +135,57 @@
 
     //开始播放弹幕
     SimpleBarrage.prototype.play = function(){
-        if(!this._curBlock){
-            this._curBlock = this._waitingBlocks[0];
+        var self = this;
+
+        if(!self._curBlock){
+            self._curBlock = self._waitingBlocks[0];
+            self._waitingBlocks.shift();
         }
-        if(this._curBlock){
-            var rect = this._curBlock.getBoundingClientRect();
-            this._curBlock.style[transformProperty] = 'translateX(-'+rect.width+'px) translateZ(0)';
-            this._curBlock.style[transitionDurationPro] = (rect.width + this._containerRect.width + this.gapWidth )/this.speed + 's';
+        if(self._curBlock){
+            window.requestAnimFrame(function(timestamp){
+                self.moving(timestamp,timestamp,self._curBlock);
+            });
         }
     }
 
-    //弹幕元素随机状态
-    SimpleBarrage.prototype.randomStatus = function($ele,lens){
-        var translateX = (Math.random()-0.5)*this.gapWidth;
-        if(lens<=0){
-            translateX = 0;//第一个元素没有纵向偏移
+    //弹幕移动
+    SimpleBarrage.prototype.moving = function(curstamp,laststamp,$item){
+        var self = this;
+
+        var rect = $item.getBoundingClientRect();
+        var moveX = self.speed * (curstamp - laststamp) / 1000;
+        $item._moveX -= moveX;
+        $item.style[transformProperty] = 'translateX('+ $item._moveX +'px) translateZ(0)';
+
+        var nextMoveX = -(rect.width - self._containerRect.width + self.gapWidth);
+        var endMoveX = -(rect.width + self.gapWidth);
+
+        if($item._moveX <= nextMoveX && self._curBlock == $item){
+            self._curBlock = null;
+            self.play();
         }
+
+        if($item._moveX >= endMoveX ){
+            var self = self;
+            window.requestAnimFrame(function(timestamp){
+                self.moving(timestamp,curstamp,$item);
+            });
+        }else{
+            self.resetBlock($item);
+        }
+    }
+
+    //重置弹幕块
+    SimpleBarrage.prototype.resetBlock = function($item){
+        $item._moveX = this._containerRect.width + this.gapWidth;
+        $item.style[transformProperty] = 'translateX('+ $item._moveX +'px) translateZ(0)';//设置起始位置
+    }
+
+    //弹幕元素随机状态
+    SimpleBarrage.prototype.randomStatus = function($ele){
+        var translateX = (Math.random()-0.5)*this.gapWidth;
         var translateY = (Math.random()-0.5)*this._lineHeight/2;//纵向偏移半个高度
-        var minScale = 0.8;
+        var minScale = 0.6;
         var maxScale = 1.2;
         var percent = (Math.abs(translateX)+Math.abs(translateY)) / (this.gapWidth + this._lineHeight/2);
         var scale = 1+(Math.random()-0.5)*(maxScale-minScale) * percent/* 偏移越多，允许缩放的范围越大 */

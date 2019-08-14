@@ -10,7 +10,8 @@
             width:100%;
             height:240px;
             background-color:lightblue;
-            overflow:hidden;
+            overflow-x:hidden;
+            position: relative;
         }
         .text{
             font-size:16px;
@@ -33,6 +34,8 @@
             --lineHeight: 0px;/* 弹幕行高 */
             --lineOffset: 0px;/* 弹幕行偏移 */
             --gapWidth: 0px;/* 弹幕元素间距 */
+            position: absolute;
+            top:0;
         }
         .barrage-line{
             display:inline-block;
@@ -94,8 +97,9 @@
                 return texts;
             }
 
-            var texts = randomText();
-            barrage.newBlock(texts)
+            barrage.newBlock(randomText())
+            barrage.newBlock(randomText())
+            barrage.newBlock(randomText())
 
             setTimeout(function(){
                 barrage.play();
