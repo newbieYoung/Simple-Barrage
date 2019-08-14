@@ -24,6 +24,7 @@
     })();
 
     var transformProperty = Prefix.prefix('transform');
+    var transitionDurationPro = Prefix.prefix('transitionDuration');
 
     //常用方法名简化
     function on (el, evt, callback) {
@@ -56,11 +57,14 @@
         this.$container = config.$container;
         this.eleHeight = config.eleHeight || 0;
         this.gapWidth = config.gapWidth || 0;
+        this.speed = config.speed || 100;
 
         this._containerRect = this.$container.getBoundingClientRect();
         this._lineHeight = this._containerRect.height / this.lineNum;//弹幕行高度 = 总区域高度 / 行数
         this._itemClass = 'barrage-item';
         this._lineClass = 'barrage-line';
+        this._curBlock = null;//当前展示的弹幕块
+        this._waitingBlocks = [];//等待展示的弹幕块
     };
 
     //添加新的弹幕块
@@ -98,13 +102,14 @@
         for(var i=0;i<items.length;i++){
             var cur = _min(lens);
             var item = items[i];
-            this.randomStatus(item.ele);
+            this.randomStatus(item.ele,eles[cur.index].length);
             lens[cur.index] += item.len;
             eles[cur.index].push(item.ele);
         }
 
         //构造元素
         var $fragment = document.createDocumentFragment();
+        var lines = [];
         for(var i=0;i<this.lineNum;i++){
             var $line = document.createElement('ul');
             $line.classList.add(this._lineClass);
@@ -114,22 +119,42 @@
                 $line.appendChild($li);
             }
             $fragment.appendChild($line);
+            lines.push($line);
         }
         $item.appendChild($fragment);
         $item.style.setProperty('--lineHeight',this._lineHeight+'px');
         $item.style.setProperty('--lineOffset',(this._lineHeight - this.eleHeight)/2+'px');
         $item.style.setProperty('--gapWidth',this.gapWidth+'px');
+        $item.style[transformProperty] = 'translateX('+ (this._containerRect.width + this.gapWidth/2) +'px) translateZ(0)';//设置起始位置
+        $item._lines = lines;
 
         this.$container.appendChild($item);
+        this._waitingBlocks.push($item);
+    }
+
+    //开始播放弹幕
+    SimpleBarrage.prototype.play = function(){
+        if(!this._curBlock){
+            this._curBlock = this._waitingBlocks[0];
+        }
+        if(this._curBlock){
+            var rect = this._curBlock.getBoundingClientRect();
+            this._curBlock.style[transformProperty] = 'translateX(-'+rect.width+'px) translateZ(0)';
+            this._curBlock.style[transitionDurationPro] = (rect.width + this._containerRect.width + this.gapWidth )/this.speed + 's';
+        }
     }
 
     //弹幕元素随机状态
-    SimpleBarrage.prototype.randomStatus = function($ele){
+    SimpleBarrage.prototype.randomStatus = function($ele,lens){
         var translateX = (Math.random()-0.5)*this.gapWidth;
-        var translateY = (Math.random()-0.5)*this.gapWidth;
+        if(lens<=0){
+            translateX = 0;//第一个元素没有纵向偏移
+        }
+        var translateY = (Math.random()-0.5)*this._lineHeight/2;//纵向偏移半个高度
         var minScale = 0.8;
         var maxScale = 1.2;
-        var scale = 1+(Math.random()-0.5)*(maxScale-minScale)*Math.max(Math.abs(translateX),Math.abs(translateY))/(this.gapWidth/2)/* 偏移越多，允许缩放的范围越大 */
+        var percent = (Math.abs(translateX)+Math.abs(translateY)) / (this.gapWidth + this._lineHeight/2);
+        var scale = 1+(Math.random()-0.5)*(maxScale-minScale) * percent/* 偏移越多，允许缩放的范围越大 */
         $ele.style[transformProperty] = 'translateX('+translateX+'px) translateY('+translateY+'px) scale('+scale+')';
     }
 
