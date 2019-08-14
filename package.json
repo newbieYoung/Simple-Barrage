@@ -1,0 +1,22 @@
+{
+  "name": "simple-barrage",
+  "version": "1.0.0",
+  "description": "弹幕运动组件；",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/newbieYoung/Simple-Barrage.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/newbieYoung/Simple-Barrage/issues"
+  },
+  "homepage": "https://github.com/newbieYoung/Simple-Barrage#readme",
+  "dependencies": {
+    "prefix-umd": "^1.0.0"
+  }
+}

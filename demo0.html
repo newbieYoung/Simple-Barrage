@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>示例一</title>
+    <meta name=viewport content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no,minimal-ui">
+    <link rel="stylesheet" href="./reset.css">
+    <style>
+        .container{
+            width:100%;
+            height:240px;
+            background-color:lightblue;
+        }
+        .text{
+            font-size:16px;
+            display:flex;
+            align-items: center;
+            justify-content: flex-start;
+            height:48px;
+            background-color:lightgray;
+        }
+
+        /* 弹幕组件 */
+        .barrage-item{
+            --lineHeight: 0px;/* 弹幕行高 */
+            --lineOffset: 0px;/* 弹幕行偏移 */
+            --gapWidth: 0px;/* 弹幕元素间距 */
+        }
+        .barrage-line{
+            white-space: nowrap;
+            font-size:0;
+            height:var(--lineHeight);
+        }
+        .barrage-line li{
+            display:inline-block;
+            height:100%;
+        }
+        .barrage-line li>*{
+            margin-top:var(--lineOffset);
+            margin-right:var(--gapWidth);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+    </div>
+    <script src="./lib/prefix-umd.js"></script>
+    <script src="./index.js"></script>
+    <script>
+        window.onload = function(){
+            var $container = document.querySelector('.container');
+
+            var barrage = new SimpleBarrage({
+                $container: $container,
+                lineNum: 5,//行数
+                eleHeight: 48,//弹幕元素高度
+                gapWidth: 20,//弹幕元素间距
+                newItem: function(data){//构造单条弹幕
+                    var $item = document.createElement('span');
+                    $item.classList.add('text');
+                    $item.innerText = data;
+                    return {
+                        ele : $item, //单条弹幕元素
+                        len : data.length //单条弹幕长度，这里简单使用字符串长度替换
+                    }
+                },
+            })
+
+            //生成随机弹幕文字数组
+            function randomText(){
+                var texts = [];
+
+                var minLen = 10;
+                var maxLen = 20;
+                var size = minLen + parseInt(Math.random()*maxLen);
+                for(var i=0;i<size;i++){
+                    var len = minLen + parseInt(Math.random()*maxLen);
+                    var text = '';
+                    for(var j=0;j<len;j++){
+                        text += '哈';
+                    }
+                    texts.push(text);
+                }
+
+                return texts;
+            }
+
+            var texts = randomText();
+            barrage.newBlock(texts)
+        }
+    </script>
+</body>
+</html>
