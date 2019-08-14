@@ -44,6 +44,7 @@
      * $container 弹幕容器
      * lineNum 弹幕行数
      * eleHeight 弹幕元素高度
+     * isLoop 是否循环播放
      * newItem 构造单条弹幕函数
      */
     function SimpleBarrage(config) {
@@ -58,6 +59,7 @@
         this.eleHeight = config.eleHeight || 0;
         this.gapWidth = config.gapWidth || 0;
         this.speed = config.speed || 100;
+        this.isLoop = config.isLoop || false;
 
         this._containerRect = this.$container.getBoundingClientRect();
         this._lineHeight = this._containerRect.height / this.lineNum;//弹幕行高度 = 总区域高度 / 行数
@@ -102,6 +104,7 @@
         for(var i=0;i<items.length;i++){
             var cur = _min(lens);
             var item = items[i];
+            item.ele.style.marginLeft = '0px';
             this.randomStatus(item.ele);
             lens[cur.index] += item.len;
             eles[cur.index].push(item.ele);
@@ -125,9 +128,10 @@
         $item.style.setProperty('--lineHeight',this._lineHeight+'px');
         $item.style.setProperty('--lineOffset',(this._lineHeight - this.eleHeight)/2+'px');
         $item.style.setProperty('--gapWidth',this.gapWidth+'px');
-        $item._moveX = this._containerRect.width + this.gapWidth/2;
+        $item._moveX = this._containerRect.width + this.gapWidth;
         $item.style[transformProperty] = 'translateX('+ $item._moveX +'px) translateZ(0)';//设置起始位置
         $item._lines = lines;
+        $item._items = items;
 
         this.$container.appendChild($item);
         this._waitingBlocks.push($item);
@@ -151,6 +155,9 @@
     //弹幕移动
     SimpleBarrage.prototype.moving = function(curstamp,laststamp,$item){
         var self = this;
+        if(self._status == 'pause'){
+            return;
+        }
 
         var rect = $item.getBoundingClientRect();
         var moveX = self.speed * (curstamp - laststamp) / 1000;
@@ -175,10 +182,55 @@
         }
     }
 
+    //弹幕块中加入元素
+    SimpleBarrage.prototype.addItem = function(data){
+        if(this._curBlock){
+            var item = this.newItem(data);
+            this._curBlock._items.push(item);
+            var rects = [];
+            for(var i=0;i<this._curBlock._lines.length;i++){
+                rects.push(this._curBlock._lines[i].getBoundingClientRect());
+            }
+
+            //找到最短行
+            var shortLine = 0;
+            var shortLen = rects[0].width;
+            for(var i=1;i<rects.length;i++){
+                if(shortLen>rects[i].width){
+                    shortLine = i;
+                    shortLen = rects[i].width;
+                }
+            }
+
+            //计算偏移
+            var offsetLeft = this._containerRect.width - (rects[shortLine].x + rects[shortLine].width);
+            if(offsetLeft>0){
+                item.ele.style.marginLeft = offsetLeft+'px';
+            }
+            this.randomStatus(item.ele);
+
+            var $li = document.createElement('li');
+            $li.appendChild(item.ele);
+            this._curBlock._lines[shortLine].appendChild($li);
+        }
+    }
+
+    //暂停
+    SimpleBarrage.prototype.pause = function(){
+        this._status = 'pause';
+    }
+
     //重置弹幕块
     SimpleBarrage.prototype.resetBlock = function($item){
         $item._moveX = this._containerRect.width + this.gapWidth;
         $item.style[transformProperty] = 'translateX('+ $item._moveX +'px) translateZ(0)';//设置起始位置
+        if(this.isLoop){
+            this._waitingBlocks.push($item);
+        }
+
+        for(var i=0;i<$item._items.length;i++){
+            $item._items[i].ele.style.marginLeft = '0px';
+        }
     }
 
     //弹幕元素随机状态
