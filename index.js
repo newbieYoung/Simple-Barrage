@@ -96,6 +96,7 @@
 
         //拆分弹幕
         for(var i=0;i<items.length;i++){
+            var cur = _min(lens);
             var item = items[i];
             this.randomStatus(item.ele);
             lens[cur.index] += item.len;

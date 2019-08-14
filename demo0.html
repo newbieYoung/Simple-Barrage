@@ -54,7 +54,7 @@
                 $container: $container,
                 lineNum: 5,//行数
                 eleHeight: 48,//弹幕元素高度
-                gapWidth: 20,//弹幕元素间距
+                gapWidth: 30,//弹幕元素间距
                 newItem: function(data){//构造单条弹幕
                     var $item = document.createElement('span');
                     $item.classList.add('text');
@@ -70,8 +70,8 @@
             function randomText(){
                 var texts = [];
 
-                var minLen = 10;
-                var maxLen = 20;
+                var minLen = 5;
+                var maxLen = 10;
                 var size = minLen + parseInt(Math.random()*maxLen);
                 for(var i=0;i<size;i++){
                     var len = minLen + parseInt(Math.random()*maxLen);
