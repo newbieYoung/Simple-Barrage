@@ -24,7 +24,6 @@
     })();
 
     var transformProperty = Prefix.prefix('transform');
-    var transitionDurationPro = Prefix.prefix('transitionDuration');
 
     //常用方法名简化
     function on(el, evt, callback) {
