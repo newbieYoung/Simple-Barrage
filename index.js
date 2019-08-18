@@ -74,10 +74,12 @@
         this._lineClass = 'barrage-line';
         this._curBlock = null; //当前展示的弹幕块
         this._waitingBlocks = []; //等待展示的弹幕块
+        this._blockReady = false; //弹幕块是否准备完成
     }
 
     //添加新的弹幕块
     SimpleBarrage.prototype.newBlock = function (list) {
+        this._blockReady = false;
         var $item = document.createElement('div');
         $item.classList.add(this._itemClass);
 
@@ -139,7 +141,7 @@
         $item.style.setProperty('--lineOffset', this._lineOffset + 'px');
         $item.style.setProperty('--gapWidth', this.gapWidth + 'px');
         $item._moveX = this._containerRect.width + this.gapWidth;
-        //$item.style[transformProperty] = 'translateX(' + $item._moveX + 'px) translateZ(0)'; //设置起始位置
+        $item.style[transformProperty] = 'translateX(' + $item._moveX + 'px) translateZ(0)'; //设置起始位置
         this.$container.appendChild($item);
         this._waitingBlocks.push($item);
 
@@ -149,20 +151,30 @@
         $item._lens = lens;
         $item._eles = eles;
         this.randomPosition($item);
+
+        this._blockReady = true;
+
+        if (this.status == 'standby') {
+            this.play();
+        }
     }
 
     //开始播放弹幕
     SimpleBarrage.prototype.play = function () {
-        var self = this;
+        if (this._blockReady) { //弹幕块准备完成，直接播放
+            var self = this;
 
-        if (!self._curBlock) {
-            self._curBlock = self._waitingBlocks[0];
-            self._waitingBlocks.shift();
-        }
-        if (self._curBlock) {
-            window.requestAnimFrame(function (timestamp) {
-                self.moving(timestamp, timestamp, self._curBlock);
-            });
+            if (!self._curBlock) {
+                self._curBlock = self._waitingBlocks[0];
+                self._waitingBlocks.shift();
+            }
+            if (self._curBlock) {
+                window.requestAnimFrame(function (timestamp) {
+                    self.moving(timestamp, timestamp, self._curBlock);
+                });
+            }
+        } else { //否则待命
+            this.status = 'standby';
         }
     }
 
@@ -199,31 +211,27 @@
     SimpleBarrage.prototype.addItem = function (data) {
         if (this._curBlock) {
             var item = this.newItem(data);
-            this._curBlock._items.push(item);
-            var rects = [];
-            for (var i = 0; i < this._curBlock._lines.length; i++) {
-                rects.push(this._curBlock._lines[i].getBoundingClientRect());
-            }
 
             //找到最短行
-            var shortLine = 0;
-            var shortLen = rects[0].width;
-            for (var i = 1; i < rects.length; i++) {
-                if (shortLen > rects[i].width) {
-                    shortLine = i;
-                    shortLen = rects[i].width;
-                }
+            var shLineNo = _min(this._curBlock._lens).index;
+            item.position = {
+                line: shLineNo,
+                column: this._curBlock._eles[shLineNo].length
             }
+            this._curBlock._eles[shLineNo].push(item)
+            this._curBlock._lens[shLineNo] += item.len;
 
             //计算偏移
-            var offsetLeft = this._containerRect.width - (rects[shortLine].x + rects[shortLine].width);
+            var shLine = this._curBlock._lines[shLineNo];
+            var shRect = shLine.getBoundingClientRect();
+            var offsetLeft = this._containerRect.width - shRect.right;
             if (offsetLeft > 0) {
                 item.ele.style.marginLeft = offsetLeft + 'px';
             }
 
             var $li = document.createElement('li');
             $li.appendChild(item.ele);
-            this._curBlock._lines[shortLine].appendChild($li);
+            this._curBlock._lines[shLineNo].appendChild($li);
         }
     }
 
@@ -326,7 +334,7 @@
         var $left = $block._eles[left.line][left.column];
         if ($left) {
             var leftRect = $left.getBoundingClientRect();
-            leftLen = rect.left - (leftRect.left + leftRect.width);
+            leftLen = rect.left - leftRect.right;
         }
         //右侧元素
         var rightLen = null;
@@ -337,7 +345,7 @@
         var $right = $block._eles[right.line][right.column];
         if ($right) {
             var rightRect = $right.getBoundingClientRect();
-            rightLen = rightRect.left - (rect.left + rect.width)
+            rightLen = rightRect.left - rect.right;
         }
         //左右居中
         if (rightLen != null && leftLen != null) {
@@ -347,7 +355,7 @@
             horizontalLen = leftLen || rightLen; //左右距离至少有一个不为空
         }
 
-        //缩放变换（距离为负则缩小。距离为正则放大）
+        //缩放变换
         var hScale = 1 + Math.random() * this.scaleLen * horizontalLen / this.gapWidth;
         var vScale = 1 + Math.random() * this.scaleLen * verticalLen / this._lineHeight / 2;
         var scale = hScale > vScale ? vScale : hScale;

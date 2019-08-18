@@ -44,7 +44,7 @@
                 $container: $container,
                 lineNum: 3, //行数
                 eleHeight: 35, //弹幕元素高度
-                gapWidth: 30, //弹幕元素间距
+                gapWidth: 20, //弹幕元素间距
                 isLoop: true, //是否循环
                 newItem: function (data) { //构造单条弹幕
                     var $item = document.createElement('span');
@@ -81,19 +81,21 @@
             }
 
             barrage.newBlock(randomText())
-            //barrage.newBlock(randomText())
+            barrage.newBlock(randomText())
+            barrage.play();
 
             setTimeout(function () {
-                //barrage.play();
-            })
+                //可以动态加入弹幕块
+                barrage.newBlock(randomText());
 
-            // var count = 0;
-            // setInterval(function () {
-            //     if (count < 10) {
-            //         barrage.addItem('阿囧囧囧啊');
-            //     }
-            //     count++;
-            // }, 1000)
+                //或者在当前弹幕块中动态加入单个弹幕
+                barrage.addItem('囧囧囧囧囧哈哈哈哈哈');
+
+                /**
+                 * warning
+                 * 暂未测试 dom 弹幕数量上限是多少
+                 */
+            }, 5000)
         }
     </script>
 </body>
