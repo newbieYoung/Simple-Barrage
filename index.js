@@ -65,7 +65,7 @@
         this.gapWidth = config.gapWidth || 0;
         this.speed = config.speed || 100;
         this.isLoop = config.isLoop || false;
-        this.scaleLen = config.scaleLen || 0.1;
+        this.scaleLen = config.scaleLen || 0.2;
 
         this._containerRect = this.$container.getBoundingClientRect();
         this._lineHeight = this._containerRect.height / this.lineNum; //弹幕行高度 = 总区域高度 / 行数
@@ -247,26 +247,33 @@
 
     //弹幕块元素随机分布
     SimpleBarrage.prototype.randomPosition = function ($block) {
-        console.log($block._lines);
-        console.log($block._items);
-        console.log($block._lens);
-        console.log($block._eles);
+        var count = 0;
+        while (count < 5) {
+            //记录序号
+            var arr = [];
+            for (var i = 0; i < $block._items.length; i++) {
+                arr.push(i);
+            }
 
-        //记录序号
-        var arr = [];
-        for (var i = 0; i < $block._items.length; i++) {
-            arr.push(i);
+            while (arr.length > 0) {
+                var no = parseInt(Math.random() * arr.length); //随机选取一个元素
+                this.randomMoving($block, arr[no]);
+
+                //去掉数组中随机选取的那个元素
+                var temp = arr[0];
+                arr[0] = arr[no];
+                arr[no] = temp;
+                arr.shift()
+            }
+
+            count++;
         }
-
-        //随机选取一个元素
-        var no = parseInt(Math.random() * arr.length);
-
-
     }
 
     //某个元素随机移动
     SimpleBarrage.prototype.randomMoving = function ($block, no) {
-        var $ele = $block._items[no];
+        var item = $block._items[no];
+        var $ele = item.ele;
         $ele._moveX = $ele._moveX || 0;
         $ele._moveY = $ele._moveY || 0;
         $ele._scale = $ele._scale || 1;
@@ -276,27 +283,25 @@
         var verticalLen = null;
         //上一行元素
         var topLen = null;
-        var topLine = $block._eles[$ele.line - 1];
+        var topLine = $block._eles[item.position.line - 1];
         if (topLine) {
             for (var i = 0; i < topLine.length; i++) {
                 var topRect = topLine[i].getBoundingClientRect();
-                if ((topRect.left < rect.right && topRect.right > rect.right) ||
-                    (topRect.left < rect.left && topRect.right > rect.left)) {
-                    if (topLen == null || topLen > (topRect.bottom - rect.top)) {
-                        topLen = (topRect.bottom - rect.top);
+                if (!(topRect.left >= rect.right * 0.95 || topRect.right <= rect.left * 1.05)) { //如果重叠范围在5%以内则忽略
+                    if (topLen == null || topLen > (rect.top - topRect.bottom)) {
+                        topLen = (rect.top - topRect.bottom);
                     }
                 }
             }
         }
         //下一行元素
         var botLen = null;
-        var bottomLine = $block._eles[$ele.line + 1];
+        var bottomLine = $block._eles[item.position.line + 1];
         if (bottomLine) {
             for (var i = 0; i < bottomLine.length; i++) {
                 var botRect = bottomLine[i].getBoundingClientRect();
-                if ((botRect.left < rect.right && botRect.right > rect.right) ||
-                    (botRect.left < rect.left && botRect.right > rect.left)) {
-                    if (botLen == null || bottomLine > (botRect.top - rect.bottom)) {
+                if (!(botRect.left >= rect.right * 0.95 || botRect.right <= rect.left * 1.05)) { //如果重叠范围在5%以内则忽略
+                    if (botLen == null || botLen > (botRect.top - rect.bottom)) {
                         botLen = (botRect.top - rect.bottom);
                     }
                 }
@@ -315,19 +320,19 @@
         //左侧元素
         var leftLen = null;
         var left = {
-            line: $ele.position.line,
-            column: $ele.position.column - 1
+            line: item.position.line,
+            column: item.position.column - 1
         }
         var $left = $block._eles[left.line][left.column];
         if ($left) {
             var leftRect = $left.getBoundingClientRect();
-            leftLen = rect.left - (leftRect.left + left.width);
+            leftLen = rect.left - (leftRect.left + leftRect.width);
         }
         //右侧元素
         var rightLen = null;
         var right = {
-            line: $ele.position.line,
-            column: $ele.position.column + 1
+            line: item.position.line,
+            column: item.position.column + 1
         }
         var $right = $block._eles[right.line][right.column];
         if ($right) {
@@ -342,14 +347,31 @@
             horizontalLen = leftLen || rightLen; //左右距离至少有一个不为空
         }
 
-        //水平缩放
+        //缩放变换（距离为负则缩小。距离为正则放大）
         var hScale = 1 + Math.random() * this.scaleLen * horizontalLen / this.gapWidth;
-        //垂直缩放
         var vScale = 1 + Math.random() * this.scaleLen * verticalLen / this._lineHeight / 2;
         var scale = hScale > vScale ? vScale : hScale;
         $ele._scale *= scale;
 
+        //位移变换
+        var translateX = (Math.random() - 0.5) * horizontalLen; //可左可右
+        if (leftLen == null && $ele._moveX < 0) { //防止左侧边缘元素向左位移太多
+            translateX = Math.abs(translateX);
+        }
+        if (rightLen == null && $ele._moveX > 0) { //防止右侧边缘元素向右位移太多
+            translateX = -Math.abs(translateX);
+        }
+        $ele._moveX += translateX;
+        var translateY = (Math.random() - 0.5) * verticalLen; //可上可下
+        if (topLen == null && $ele._moveY < 0) { //防止上侧边缘元素向上位移太多
+            translateY = Math.abs(translateY);
+        }
+        if (botLen == null && $ele._moveY > 0) { //防止下侧边缘元素向下位移太多
+            translateY = -Math.abs(translateY);
+        }
+        $ele._moveY += translateY
 
+        $ele.style[transformProperty] = 'translateX(' + $ele._moveX + 'px) translateY(' + $ele._moveY + 'px) scale(' + $ele._scale + ')';
     }
 
     //获取数组中的最小值
