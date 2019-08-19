@@ -243,6 +243,9 @@
       var $li = document.createElement('li')
       $li.appendChild(item.ele)
       this._curBlock._lines[shLineNo].appendChild($li)
+      this.randomMoving(this._curBlock, this._curBlock._items.length - 1)
+    } else {
+      this.newBlock([data])
     }
   }
 
@@ -343,8 +346,10 @@
     if (topLen != null && botLen != null) {
       $ele._moveY += (botLen - topLen) / 2
       verticalLen = (botLen + topLen) / 2
+    } else if (botLen == null && topLen == null) {
+      verticalLen = this._lineHeight / 2
     } else {
-      verticalLen = botLen || topLen //上下距离至少有一个不为空
+      verticalLen = botLen || topLen
     }
 
     //计算水平距离
