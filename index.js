@@ -27,23 +27,6 @@
 
   var transformProperty = Prefix.prefix('transform')
 
-  //常用方法名简化
-  function on(el, evt, callback) {
-    el.addEventListener(evt, callback)
-  }
-
-  function off(el, evt, callback) {
-    el.removeEventListener(evt, callback)
-  }
-
-  function qs(str) {
-    return document.querySelector(str)
-  }
-
-  function qsa(str) {
-    return document.querySelectorAll(str)
-  }
-
   /**
    * $container 弹幕容器
    * lineNum 弹幕行数
