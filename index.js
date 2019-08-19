@@ -214,6 +214,7 @@
         line: shLineNo,
         column: this._curBlock._eles[shLineNo].length
       }
+      this._curBlock._items.push(item)
       this._curBlock._eles[shLineNo].push(item.ele)
       this._curBlock._lens[shLineNo] += item.len
 
