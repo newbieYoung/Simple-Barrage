@@ -1,4 +1,4 @@
 # SimpleBarrage
 
-弹幕运动组件；
+弹幕组件；
 
