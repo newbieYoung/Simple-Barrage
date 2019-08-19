@@ -162,7 +162,6 @@
   //开始播放弹幕
   SimpleBarrage.prototype.play = function() {
     var self = this
-    console.log(self._waitingBlocks)
 
     if (!self._curBlock) {
       self._curBlock = self._waitingBlocks[0]
@@ -243,6 +242,8 @@
     if (this.isLoop) {
       this._waitingBlocks.push($item)
       $item._moving = false //重置为非移动状态
+    } else {
+      this.$container.removeChild($item)
     }
 
     for (var i = 0; i < $item._items.length; i++) {

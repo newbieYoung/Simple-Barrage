@@ -80,6 +80,9 @@
                 return texts;
             }
 
+            /**
+             * 初始化弹幕块时必须保证所有弹幕块的宽度大于屏幕宽度
+             */
             barrage.newBlock(randomText())
             barrage.newBlock(randomText())
             barrage.play();
