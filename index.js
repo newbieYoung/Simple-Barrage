@@ -157,21 +157,19 @@
     if (this.isRandom) {
       this.randomPosition($item)
     }
-
-    if (this.status == 'standby') {
-      this.play()
-    }
   }
 
   //开始播放弹幕
   SimpleBarrage.prototype.play = function() {
     var self = this
+    console.log(self._waitingBlocks)
 
     if (!self._curBlock) {
       self._curBlock = self._waitingBlocks[0]
       self._waitingBlocks.shift()
     }
-    if (self._curBlock) {
+    if (self._curBlock && !self._curBlock._moving) {
+      self._curBlock._moving = true //当前弹幕块正在移动
       window.requestAnimFrame(function(timestamp) {
         self.moving(timestamp, timestamp, self._curBlock)
       })
@@ -181,9 +179,6 @@
   //弹幕移动
   SimpleBarrage.prototype.moving = function(curstamp, laststamp, $item) {
     var self = this
-    if (self._status == 'pause') {
-      return
-    }
 
     var rect = $item.getBoundingClientRect()
     var moveX = (self.speed * (curstamp - laststamp)) / 1000
@@ -219,7 +214,7 @@
         line: shLineNo,
         column: this._curBlock._eles[shLineNo].length
       }
-      this._curBlock._eles[shLineNo].push(item)
+      this._curBlock._eles[shLineNo].push(item.ele)
       this._curBlock._lens[shLineNo] += item.len
 
       //计算偏移
@@ -239,11 +234,6 @@
     }
   }
 
-  //暂停
-  SimpleBarrage.prototype.pause = function() {
-    this._status = 'pause'
-  }
-
   //重置弹幕块
   SimpleBarrage.prototype.resetBlock = function($item) {
     $item._moveX = this._containerRect.width + this.gapWidth
@@ -251,6 +241,7 @@
       'translateX(' + $item._moveX + 'px) translateZ(0)' //设置起始位置
     if (this.isLoop) {
       this._waitingBlocks.push($item)
+      $item._moving = false //重置为非移动状态
     }
 
     for (var i = 0; i < $item._items.length; i++) {
@@ -313,6 +304,7 @@
         }
       }
     }
+
     //下一行元素
     var botLen = null
     var bottomLine = $block._eles[item.position.line + 1]
@@ -332,6 +324,7 @@
         }
       }
     }
+
     //上下居中
     if (topLen != null && botLen != null) {
       $ele._moveY += (botLen - topLen) / 2
