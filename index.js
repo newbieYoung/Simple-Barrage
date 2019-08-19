@@ -78,12 +78,10 @@
     this._lineClass = 'barrage-line'
     this._curBlock = null //当前展示的弹幕块
     this._waitingBlocks = [] //等待展示的弹幕块
-    this._blockReady = false //弹幕块是否准备完成
   }
 
   //添加新的弹幕块
   SimpleBarrage.prototype.newBlock = function(list) {
-    this._blockReady = false
     var $item = document.createElement('div')
     $item.classList.add(this._itemClass)
 
@@ -160,8 +158,6 @@
       this.randomPosition($item)
     }
 
-    this._blockReady = true
-
     if (this.status == 'standby') {
       this.play()
     }
@@ -169,22 +165,16 @@
 
   //开始播放弹幕
   SimpleBarrage.prototype.play = function() {
-    if (this._blockReady) {
-      //弹幕块准备完成，直接播放
-      var self = this
+    var self = this
 
-      if (!self._curBlock) {
-        self._curBlock = self._waitingBlocks[0]
-        self._waitingBlocks.shift()
-      }
-      if (self._curBlock) {
-        window.requestAnimFrame(function(timestamp) {
-          self.moving(timestamp, timestamp, self._curBlock)
-        })
-      }
-    } else {
-      //否则待命
-      this.status = 'standby'
+    if (!self._curBlock) {
+      self._curBlock = self._waitingBlocks[0]
+      self._waitingBlocks.shift()
+    }
+    if (self._curBlock) {
+      window.requestAnimFrame(function(timestamp) {
+        self.moving(timestamp, timestamp, self._curBlock)
+      })
     }
   }
 
