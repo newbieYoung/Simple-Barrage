@@ -18,7 +18,6 @@
 }
 
 .barrage-line {
-    display: inline-block;
     white-space: nowrap;
     font-size: 0;
     height: var(--lineHeight);
