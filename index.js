@@ -2,7 +2,7 @@
  * Created by newyoung on 2019/8/14.
  */
 
-(function(factory) {
+(function (factory) {
   if (typeof define === 'function' && define.amd) {
     // AMD. Register as an anonymous module.
     define(['prefix-umd'], factory)
@@ -13,9 +13,9 @@
     // Browser globals
     window.SimpleBarrage = factory(window.Prefix)
   }
-})(function(Prefix) {
+})(function (Prefix) {
   //兼容性处理
-  window.requestAnimFrame = (function() {
+  window.requestAnimFrame = (function () {
     return (
       window.requestAnimationFrame ||
       window.mozRequestAnimationFrame ||
@@ -45,7 +45,7 @@
     }
 
     this.lineNum = config.lineNum || 1
-    this.newItem = config.newItem || function() {}
+    this.newItem = config.newItem || function () {}
     this.$container = config.$container
     this.eleHeight = config.eleHeight || 0
     this.gapWidth = config.gapWidth || 0
@@ -64,7 +64,7 @@
   }
 
   //添加新的弹幕块
-  SimpleBarrage.prototype.newBlock = function(list) {
+  SimpleBarrage.prototype.newBlock = function (list) {
     var $item = document.createElement('div')
     $item.classList.add(this._itemClass)
 
@@ -84,7 +84,7 @@
     }
 
     //按长度倒序
-    items.sort(function(a, b) {
+    items.sort(function (a, b) {
       if (a.len < b.len) {
         return 1
       }
@@ -127,8 +127,8 @@
     $item.style.setProperty('--lineOffset', this._lineOffset + 'px')
     $item.style.setProperty('--gapWidth', this.gapWidth + 'px')
     $item._moveX = this._containerRect.width + this.gapWidth
-    $item.style[transformProperty] =
-      'translateX(' + $item._moveX + 'px) translateZ(0)' //设置起始位置
+    // $item.style[transformProperty] =
+    //   'translateX(' + $item._moveX + 'px) translateZ(0)' //设置起始位置
     this.$container.appendChild($item)
     this._waitingBlocks.push($item)
 
@@ -143,7 +143,7 @@
   }
 
   //开始播放弹幕
-  SimpleBarrage.prototype.play = function() {
+  SimpleBarrage.prototype.play = function () {
     var self = this
 
     if (!self._curBlock) {
@@ -152,14 +152,14 @@
     }
     if (self._curBlock && !self._curBlock._moving) {
       self._curBlock._moving = true //当前弹幕块正在移动
-      window.requestAnimFrame(function(timestamp) {
+      window.requestAnimFrame(function (timestamp) {
         self.moving(timestamp, timestamp, self._curBlock)
       })
     }
   }
 
   //弹幕移动
-  SimpleBarrage.prototype.moving = function(curstamp, laststamp, $item) {
+  SimpleBarrage.prototype.moving = function (curstamp, laststamp, $item) {
     var self = this
 
     var rect = $item.getBoundingClientRect()
@@ -177,7 +177,7 @@
     }
 
     if ($item._moveX >= endMoveX) {
-      window.requestAnimFrame(function(timestamp) {
+      window.requestAnimFrame(function (timestamp) {
         self.moving(timestamp, curstamp, $item)
       })
     } else {
@@ -186,7 +186,7 @@
   }
 
   //弹幕块中加入元素
-  SimpleBarrage.prototype.addItem = function(data) {
+  SimpleBarrage.prototype.addItem = function (data) {
     if (this._curBlock) {
       var item = this.newItem(data)
 
@@ -218,7 +218,7 @@
   }
 
   //重置弹幕块
-  SimpleBarrage.prototype.resetBlock = function($item) {
+  SimpleBarrage.prototype.resetBlock = function ($item) {
     $item._moveX = this._containerRect.width + this.gapWidth
     $item.style[transformProperty] =
       'translateX(' + $item._moveX + 'px) translateZ(0)' //设置起始位置
@@ -235,9 +235,9 @@
   }
 
   //弹幕块元素随机分布
-  SimpleBarrage.prototype.randomPosition = function($block) {
+  SimpleBarrage.prototype.randomPosition = function ($block) {
     var count = 0
-    while (count < 5) {
+    while (count < 4) {
       //记录序号
       var arr = []
       for (var i = 0; i < $block._items.length; i++) {
@@ -260,7 +260,7 @@
   }
 
   //某个元素随机移动
-  SimpleBarrage.prototype.randomMoving = function($block, no) {
+  SimpleBarrage.prototype.randomMoving = function ($block, no) {
     var item = $block._items[no]
     var $ele = item.ele
     $ele._moveX = $ele._moveX || 0
@@ -353,11 +353,7 @@
     }
 
     //缩放变换
-    var hScale =
-      1 + (Math.random() * this.scaleLen * horizontalLen) / this.gapWidth
-    var vScale =
-      1 + (Math.random() * this.scaleLen * verticalLen) / this._lineHeight / 2
-    var scale = hScale > vScale ? vScale : hScale
+    var scale = 1 + ((Math.random() - 0.5) * this.scaleLen * (horizontalLen + verticalLen)) / (this.gapWidth + this._lineHeight / 2);
     $ele._scale *= scale
 
     //位移变换
