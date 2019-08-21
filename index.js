@@ -127,8 +127,8 @@
     $item.style.setProperty('--lineOffset', this._lineOffset + 'px')
     $item.style.setProperty('--gapWidth', this.gapWidth + 'px')
     $item._moveX = this._containerRect.width + this.gapWidth
-    // $item.style[transformProperty] =
-    //   'translateX(' + $item._moveX + 'px) translateZ(0)' //设置起始位置
+    $item.style[transformProperty] =
+      'translateX(' + $item._moveX + 'px) translateZ(0)' //设置起始位置
     this.$container.appendChild($item)
     this._waitingBlocks.push($item)
 
@@ -236,26 +236,37 @@
 
   //弹幕块元素随机分布
   SimpleBarrage.prototype.randomPosition = function ($block) {
-    var count = 0
-    while (count < 4) {
-      //记录序号
-      var arr = []
-      for (var i = 0; i < $block._items.length; i++) {
-        arr.push(i)
+    //记录序号
+    var arr = []
+    for (var i = 0; i < $block._items.length; i++) {
+      arr.push(i)
+    }
+    this.runQueue($block, arr, 4)
+  }
+
+  //while循环改为递归方式
+  SimpleBarrage.prototype.runQueue = function ($block, arr, count) {
+    if (count > 0) {
+      var self = this;
+      var no = parseInt(Math.random() * arr.length) //随机选取一个元素
+      this.randomMoving($block, arr[no])
+
+      //去掉数组中随机选取的那个元素
+      var temp = arr[0]
+      arr[0] = arr[no]
+      arr[no] = temp
+      arr.shift()
+
+      if (arr.length > 0) {
+        self.runQueue($block, arr, count); //继续执行
+      } else {
+        count--;
+        var nwArr = []
+        for (var i = 0; i < $block._items.length; i++) {
+          nwArr.push(i)
+        }
+        self.runQueue($block, nwArr, count); //重新开始
       }
-
-      while (arr.length > 0) {
-        var no = parseInt(Math.random() * arr.length) //随机选取一个元素
-        this.randomMoving($block, arr[no])
-
-        //去掉数组中随机选取的那个元素
-        var temp = arr[0]
-        arr[0] = arr[no]
-        arr[no] = temp
-        arr.shift()
-      }
-
-      count++
     }
   }
 
