@@ -61,14 +61,14 @@
             function randomText() {
                 var texts = [];
 
-                //5-10行
-                var minLen = 5;
-                var maxLen = 5;
+                //8-16行
+                var minLen = 8;
+                var maxLen = 8;
                 var size = minLen + parseInt(Math.random() * maxLen);
                 for (var i = 0; i < size; i++) {
-                    //3-8 个字
-                    var minSize = 3;
-                    var maxSize = 5;
+                    //4-10 个字
+                    var minSize = 4;
+                    var maxSize = 6;
                     var len = minSize + parseInt(Math.random() * maxSize);
                     var text = '';
                     for (var j = 0; j < len; j++) {
@@ -81,7 +81,7 @@
             }
 
             /**
-             * 初始化弹幕块时必须保证所有弹幕块的宽度大于屏幕宽度
+             * 初始化弹幕块时必须保证所有弹幕块的宽度大于屏幕宽度，这样就能保证循环模式不会出问题
              */
             barrage.newBlock(randomText())
             barrage.newBlock(randomText())

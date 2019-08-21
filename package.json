@@ -1,6 +1,6 @@
 {
   "name": "simple-barrage",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "弹幕运动组件；",
   "main": "index.js",
   "scripts": {
